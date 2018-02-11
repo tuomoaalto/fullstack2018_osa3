@@ -1,9 +1,10 @@
 const mongoose = require('mongoose')
 
-const user = process.env.MLAB_FULLSTACK_USER;
-const pass = process.env.MLAB_FULLSTACK_PASS;
+const user = process.env.MLAB_FULLSTACK_USER
+const pass = process.env.MLAB_FULLSTACK_PASS
+const dburl = process.env.MLAB_FULLSTACK_URL
 
-const url = 'mongodb://' + user + ':' + pass + '@ds229448.mlab.com:29448/fullstack_osa3'
+const url = 'mongodb://' + user + ':' + pass + '@' + dburl
 
 mongoose.connect(url)
 
@@ -22,21 +23,19 @@ if (process.argv[2] !== undefined && process.argv[3] !== undefined){
         .save()
         .then(result => {
             console.log('lisätään henkilö',person.name,'numero',person.number,'luetteloon')
-            mongoose.connection.close();
+            mongoose.connection.close()
         })
 
 } else {
     Person
-    .find()
-    .then(result => {
-        if (result.length > 0){
-            console.log('Puhelinluettelo')
-            result.forEach(person =>{
-                console.log(person.name, person.number)
-            })
-        }
-        mongoose.connection.close()
-    })
+        .find()
+        .then(result => {
+            if (result.length > 0){
+                console.log('Puhelinluettelo')
+                result.forEach(person => {
+                    console.log(person.name, person.number)
+                })
+            }
+            mongoose.connection.close()
+        })
 }
-
-  

@@ -1,10 +1,13 @@
 const mongoose = require('mongoose')
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
-const user = process.env.MLAB_FULLSTACK_USER;
-const pass = process.env.MLAB_FULLSTACK_PASS;
-const dburl = process.env.MLAB_FULLSTACK_URL;
+if ( process.env.NODE_ENV !== 'production' ) {
+    require('dotenv').config()
+}
 
+const user = process.env.MLAB_FULLSTACK_USER
+const pass = process.env.MLAB_FULLSTACK_PASS
+const dburl = process.env.MLAB_FULLSTACK_URL
 
 const url = 'mongodb://' + user + ':' + pass + '@' + dburl
 
@@ -17,16 +20,16 @@ var personSchema = new Schema({
 })
 
 personSchema.statics.format = function(name, cb) {
-    return this.find({ name: new RegExp(name, 'i') }, cb);
-  };
+    return this.find({ name: new RegExp(name, 'i') }, cb)
+}
 
 const Person = mongoose.model('Person', personSchema)
 
-module.exports = Person;
+module.exports = Person
 
 /*
 
-Refaktoroi koodiasi siten, että määrittelet formatoinnin suorittavan metodin 
+Refaktoroi koodiasi siten, että määrittelet formatoinnin suorittavan metodin
 mongoose skeeman staattisena metodina, jolloin voit käyttää sitä koodista seuraavasti:
 
 persons.map(Person.format)
