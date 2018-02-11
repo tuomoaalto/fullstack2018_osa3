@@ -8,7 +8,6 @@ const app = express()
 const cors = require('cors')
 
 app.use(cors())
-
 app.use(express.static('build'))
 app.use(bodyParser.json())
 
@@ -19,15 +18,56 @@ morgan.token('body', function getJsonBody (req) {
 //app.use(morgan('tiny'))
 app.use(morgan(':method :url :body :status :res[content-length] - :response-time ms'))
 
+/*
+let persons = [
+    {
+      "name": "Arto Hellas",
+      "number": "040-123456",
+      "id": 1
+    },
+    {
+      "name": "Martti Tienari",
+      "number": "040-123456",
+      "id": 2
+    },
+    {
+      "name": "Arto Järvinen",
+      "number": "040-123456",
+      "id": 3
+    },
+    {
+      "name": "Lea Kutvonen",
+      "number": "040-123456",
+      "id": 4
+    },
+    {
+      "name": "Jeppe Tunari",
+      "number": "050-12345",
+      "id": 5
+    },
+    {
+      "name": "Allu Tuppurainen",
+      "number": "045-567890",
+      "id": 6
+    },
+    {
+      "name": "Pelle Hermanni",
+      "number": "123-23456",
+      "id": 7
+    }
+  ]
+*/
+
+
 app.get('/api/persons', (request, response) => {
     Person
         .find({})
         .then(people => {
-            response.json(people)
+            response.json(people.map(Person.format))
         })
 })
 
-app.get('/api/info', (request, response) => {
+app.get('/info', (request, response) => {
     Person
         .find({})
         .then(people => {
@@ -42,7 +82,12 @@ app.get('/api/persons/:id', (request, response) => {
     Person
         .findById(inputId)
         .then(person => {
-            response.json(person)
+            if (person === null){
+                response.status(404).end()
+            } else {
+                response.json(Person.format(person))
+            }
+            
         })
         .catch(error => {
             console.log(error)
@@ -50,6 +95,7 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 app.delete('/api/persons/:id', (request, response) => {
+
     const inputId = request.params.id
     console.log('inputId: ', inputId)
     Person
@@ -62,25 +108,44 @@ app.delete('/api/persons/:id', (request, response) => {
         })
 })
 
-app.put('/api/persons/:id', (request, response) => {
+/* Pre-mongo -versio kommentoitu veks.
+const generatePersonId = () => {
+    return Math.floor(Math.random() * Math.floor(123456789));
+}
+
+const badName = (inputName) => {
+    var namesInList = persons.map(p => p.name);
+    return namesInList.includes(inputName)
+}
+const badNumber = (inputNumber) => {
+    var numbersInList = persons.map(p => p.number);
+    return numbersInList.includes(inputNumber)
+}
+
+app.post('/api/persons', (request, response) => {
     const body = request.body
-    const inputId = request.params.id
+    if (body.name === undefined || body.number === undefined) {
+        return response.status(400).json({error: 'Input required for name and number'})
+    }
+    
+    if (badName(body.name)){
+        return response.status(400).json({error: 'Name already in list!'})
+    }
+
+    if (badNumber(body.number)){
+        return response.status(400).json({error: 'Number already in list!'})
+    }
 
     const person = {
         name: body.name,
-        number: body.number
+        number: body.number,
+        id: generatePersonId()
     }
+    persons = persons.concat(person)
 
-    Person
-        .findByIdAndUpdate(inputId, person, { new: true } )
-        .then(updatedPerson => {
-            response.json(updatedPerson)
-        })
-        .catch(error => {
-            console.log(error)
-            response.status(400).send({ error: 'Id is screwed up.' })
-        })
+    response.json(person)
 })
+*/
 
 
 app.post('/api/persons', (request, response) => {
@@ -107,7 +172,7 @@ app.post('/api/persons', (request, response) => {
                 person
                     .save()
                     .then(newPerson => {
-                        response.json(newPerson)
+                        response.json(Person.format(newPerson))
                     })
                     .catch(error => {
                         console.log(error)
@@ -116,6 +181,26 @@ app.post('/api/persons', (request, response) => {
         })
         .catch(error => {
             console.log
+        })
+})
+
+app.put('/api/persons/:id', (request, response) => {
+    const body = request.body
+    const inputId = request.params.id
+
+    const person = {
+        name: body.name,
+        number: body.number
+    }
+
+    Person
+        .findByIdAndUpdate(inputId, person, { new: true } )
+        .then(updatedPerson => {
+            response.json(Person.format(updatedPerson))
+        })
+        .catch(error => {
+            console.log(error)
+            response.status(400).send({ error: 'Id is screwed up.' })
         })
 })
 

@@ -19,33 +19,14 @@ var personSchema = new Schema({
     number: String
 })
 
-personSchema.statics.format = function(name, cb) {
-    return this.find({ name: new RegExp(name, 'i') }, cb)
+personSchema.statics.format = function(person) {
+    return {
+        id: person._id,
+        name: person.name,
+        number: person.number
+    }
 }
 
 const Person = mongoose.model('Person', personSchema)
 
 module.exports = Person
-
-/*
-
-Refaktoroi koodiasi siten, että määrittelet formatoinnin suorittavan metodin
-mongoose skeeman staattisena metodina, jolloin voit käyttää sitä koodista seuraavasti:
-
-persons.map(Person.format)
-muotoillessa taulukossa persons olevat oliot tai yksittäsen olion person muotoilussa seuraavasti:
-
-Person.format(person)
-Tehtävän tekeminen edellyttää luovaa manuaalin lukemista. Älä juutu tähän ainakaan aluksi liian pitkäksi aikaa!
-
-const formatNote = (note) => {
-    return {
-      content: note.content,
-      date: note.date,
-      important: note.important,
-      id: note._id
-    }
-  }
-
-
-  */
