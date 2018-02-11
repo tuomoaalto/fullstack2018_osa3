@@ -1,3 +1,5 @@
+const Person = require('./models/person')
+
 const express = require('express')
 const bodyParser = require('body-parser')
 var morgan = require('morgan')
@@ -16,111 +18,117 @@ morgan.token('body', function getJsonBody (req) {
 //app.use(morgan('tiny'))
 app.use(morgan(':method :url :body :status :res[content-length] - :response-time ms'))
 
-let persons = [
-      {
-        "name": "Arto Hellas",
-        "number": "040-123456",
-        "id": 1
-      },
-      {
-        "name": "Martti Tienari",
-        "number": "040-123456",
-        "id": 2
-      },
-      {
-        "name": "Arto Järvinen",
-        "number": "040-123456",
-        "id": 3
-      },
-      {
-        "name": "Lea Kutvonen",
-        "number": "040-123456",
-        "id": 4
-      },
-      {
-        "name": "Jeppe Tunari",
-        "number": "050-12345",
-        "id": 5
-      },
-      {
-        "name": "Allu Tuppurainen",
-        "number": "045-567890",
-        "id": 6
-      },
-      {
-        "name": "Pelle Hermanni",
-        "number": "123-23456",
-        "id": 7
-      }
-    ]
-
-    app.get('/api/persons', (request, response) => {
-        response.json(persons)
+app.get('/api/persons', (request, response) => {
+    Person
+    .find({})
+    .then(people => {
+        response.json(people)
     })
+})
   
-    app.get('/info', (request, response) => {
-        var out = 'puhelinluettelossa ' + persons.length + ' henkilön tiedot<br/>' + new Date();
+app.get('/api/info', (request, response) => {
+    Person
+    .find({})
+    .then(people => {
+        var out = 'puhelinluettelossa ' + people.length + ' henkilön tiedot<br/>' + new Date();    
         response.send(out)
     })
+})
 
-    app.get('/api/persons/:id', (request, response) => {
-        const id = Number(request.params.id)
-        const person = persons.find(person => person.id === id)
-  
-        if ( person ) {
-            response.json(person)
-        } else {
-            response.status(404).end()
-        }
-    })
-
-    app.delete('/api/persons/:id', (request, response) => {
-        const id = Number(request.params.id)
-        persons = persons.filter(person => person.id !== id)
-  
-        response.status(204).end()
-    })
-
-    const generatePersonId = () => {
-        return Math.floor(Math.random() * Math.floor(123456789));
-    }
-  
-    const badName = (inputName) => {
-        namesInList = persons.map(p => p.name);
-        return namesInList.includes(inputName)
-    }
-
-    const badNumber = (inputNumber) => {
-        numbersInList = persons.map(p => p.number);
-        return numbersInList.includes(inputNumber)
-    }
-
-    app.post('/api/persons', (request, response) => {
-        const body = request.body
-        if (body.name === undefined || body.number === undefined) {
-            return response.status(400).json({error: 'Input required for name and number'})
-        }
-        
-        if (badName(body.name)){
-            return response.status(400).json({error: 'Name already in list!'})
-        }
-
-        if (badNumber(body.number)){
-            return response.status(400).json({error: 'Number already in list!'})
-        }
-
-        const person = {
-            name: body.name,
-            number: body.number,
-            id: generatePersonId()
-        }
-        persons = persons.concat(person)
-
+app.get('/api/persons/:id', (request, response) => {
+    const inputId = request.params.id
+    
+    Person
+    .findById(inputId)
+    .then(person =>{
         response.json(person)
     })
-
-    const PORT = process.env.PORT || 3001
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`)
+    .catch(error => {
+        console.log(error)
     })
+})
+
+app.delete('/api/persons/:id', (request, response) => {
+    const inputId = request.params.id
+    console.log('inputId: ', inputId)
+    Person
+    .findByIdAndRemove(inputId)
+    .then(result => {
+        response.status(204).end()
+    })
+    .catch(error => {
+        response.status(400).send({ error: 'Id is screwed up.' })
+    })
+})
+
+app.put('/api/persons/:id', (request, response) => {
+    const body = request.body
+    const inputId = request.params.id
+      
+    const person = {
+          name: body.name,
+          number: body.number
+        }
+      
+    Person
+    .findByIdAndUpdate(inputId, person, { new: true } )
+    .then(updatedPerson => {
+        response.json(updatedPerson)
+    })
+    .catch(error => {
+        console.log(error)
+        response.status(400).send({ error: 'Id is screwed up.' })
+    })
+})
+
+
+app.post('/api/persons', (request, response) => {
+    console.log('post body: ', request.body)
+    const body = request.body
+    if (body.name === undefined || body.number === undefined) {
+        return response.status(400).json({error: 'Input required for name and number'})
+    }
+
+    const person = new Person({
+        name: body.name,
+        number: body.number,
+    })
+
+    /*
+    person
+    .save()
+    .then(newPerson =>{
+        response.json(newPerson)
+    })    
+    .catch(error => {
+        console.log(error)
+    })  
+*/
+    Person
+    .find({name: body.name})
+    .then(fetchedPersonByName => {
+        console.log('fetchedPersonByName:', fetchedPersonByName)
+        if (fetchedPersonByName){
+            return response.status(400).json({error: 'Name already in list!'});
+        }
+        else{                
+            person
+            .save()
+            .then(newPerson =>{
+                response.json(newPerson)
+            })    
+            .catch(error => {
+                console.log(error)
+            })              
+        }
+    })
+    .catch(error => {
+        console.log
+    })
+})
+
+const PORT = process.env.PORT || 3001
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`)
+})
 
