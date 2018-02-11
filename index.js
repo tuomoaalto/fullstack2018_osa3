@@ -6,6 +6,7 @@ const app = express()
 const cors = require('cors')
 
 app.use(cors())
+app.use(express.static('build'))
 app.use(bodyParser.json())
 
 morgan.token('body', function getJsonBody (req) {
@@ -122,3 +123,4 @@ let persons = [
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
     })
+
