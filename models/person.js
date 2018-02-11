@@ -3,8 +3,10 @@ const Schema = mongoose.Schema;
 
 const user = process.env.MLAB_FULLSTACK_USER;
 const pass = process.env.MLAB_FULLSTACK_PASS;
+const dburl = process.env.MLAB_FULLSTACK_URL;
 
-const url = 'mongodb://' + user + ':' + pass + '@ds229448.mlab.com:29448/fullstack_osa3'
+
+const url = 'mongodb://' + user + ':' + pass + '@' + dburl
 
 mongoose.connect(url)
 
