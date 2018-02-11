@@ -94,21 +94,12 @@ app.post('/api/persons', (request, response) => {
         number: body.number,
     })
 
-    /*
-    person
-    .save()
-    .then(newPerson =>{
-        response.json(newPerson)
-    })    
-    .catch(error => {
-        console.log(error)
-    })  
-*/
     Person
     .find({name: body.name})
-    .then(fetchedPersonByName => {
-        console.log('fetchedPersonByName:', fetchedPersonByName)
-        if (fetchedPersonByName){
+    .then(fetchedPerson => {
+        console.log('fetchedPerson: ', fetchedPerson)
+        console.log('object.keys: ',Object.keys(fetchedPerson))
+        if (Object.keys(fetchedPerson).length !== 0){
             return response.status(400).json({error: 'Name already in list!'});
         }
         else{                
